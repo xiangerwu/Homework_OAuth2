@@ -30,3 +30,31 @@ async function logout() {
     // 重整頁面
     location.reload();
 }
+
+
+export let dash = true;  // 預設是 1 狀態
+export const dashImages = [];
+
+for (let i = 1; i < 3; i++) {
+    dashImages.push(`/static/images/dash${i}.png`);
+}
+// 通用 preload 函式
+export function preloadImages(imageList) {
+    imageList.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+}
+// 執行預載
+preloadImages([ ...dashImages]);
+document.body.style.backgroundImage = `url("${dashImages[1]}")`;
+// 預載完成後，隨機選擇一張圖片作為背景
+async function toggleDash() {
+    dash= !dash;
+    document.body.style.backgroundImage = `url("${dashImages[dash ? 0 : 1]}")`;
+}
+
+window.toggleDash = toggleDash; // 將函式綁定到 window 物件上，便於在 HTML 中使用
+window.logout = logout; // 將函式綁定到 window 物件上，便於在 HTML 中使用   
+
+export { toggleDash, logout }; // 將函式導出，便於在其他模組中使用

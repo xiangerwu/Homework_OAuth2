@@ -117,15 +117,36 @@ function redirectToAuth() {
 }
 
 let isLight = false;  // 預設是關燈狀態
-const preloadImg = new Image();
-preloadImg.src = "/static/images/light.jpg";
 
-const preloadImg2 = new Image();
-preloadImg2.src = "/static/images/dark.jpg";
+export const darkImages = [];
+export const lightImages = [];
 
-function toggleLight() {
-    isLight = !isLight;
-    document.body.style.backgroundImage = isLight
-        ? 'url("/static/images/light.png")'
-        : 'url("/static/images/dark.png")';
+
+for (let i = 1; i < 3 ; i++) {
+    darkImages.push(`/static/images/dark${i}.png`);
 }
+for (let i = 1; i < 3; i++) {
+    lightImages.push(`/static/images/light${i}.png`);
+}
+
+// 通用 preload 函式
+export function preloadImages(imageList) {
+    imageList.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+}
+
+// 執行預載
+preloadImages([...darkImages, ...lightImages]);
+// 預載完成後，隨機選擇一張圖片作為背景
+async function toggleLight() {
+    isLight = !isLight;
+    const images = isLight ? lightImages : darkImages;
+    const randomIndex = Math.floor(Math.random() * images.length);
+    document.body.style.backgroundImage = `url("${images[randomIndex]}")`;
+}
+
+window.toggleLight = toggleLight; // 將函式綁定到 window 物件上，便於在 HTML 中使用
+window.redirectToAuth = redirectToAuth; // 將函式綁定到 window 物件上，便於在 HTML 中使用
+export { toggleLight, redirectToAuth }; // 將函式導出，便於在其他模組中使用
