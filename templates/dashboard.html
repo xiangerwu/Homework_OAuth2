@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>登入成功</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="https://fido2-web.akitawan.moe/favicon.ico" type="image/x-icon">
+
+</head>
+
+<body onclick="toggleLight()">
+
+    <div class="login-card">
+        <h2 id="user-title">歡迎回來，使用者</h2>
+        <p>登入資訊如下：</p>
+        <div id="user-info" class="user-info"></div>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+
+    <script>  const user = {{ payload | tojson | safe }};  </script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>

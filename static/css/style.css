@@ -1,0 +1,109 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+    background-image: url('/static/images/dark.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.user-info {
+    background: #f4f4f4;
+    border-radius: 8px;
+    padding: 1em;
+    text-align: left;
+    white-space: pre-wrap;
+    font-family: Consolas, monospace;
+    font-size: 0.95em;
+    margin-top: 0.5em;
+}
+
+.login-btn {
+    margin-top: 1.5em;
+    padding: 0.6em 1.5em;
+    background-color: #009688; /* 青綠色風格 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.login-btn:hover {
+    background-color: #00796b;
+    transform: scale(1.03);
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+.logout-btn {
+    margin-top: 1.5em;
+    padding: 0.6em 1.5em;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.logout-btn:hover {
+    background-color: #303f9f;
+}
+
+p {
+    margin: 0.5em 0;
+    color: #444;
+}
+
+.user-info-table {
+    background: #f4f4f4;
+    border-radius: 8px;
+    padding: 1em 1.2em;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 0.95em;
+    margin-top: 0.5em;
+    text-align: left;
+    line-height: 1.8;
+}
+
+.user-info-table span.key {
+    font-weight: bold;
+    color: #333;
+    display: inline-block;
+    width: 120px;
+}
+
+.user-info-table span.value {
+    color: #444;
+}
+
+
+.login-card{
+  position: relative;
+  z-index: 1;
+  padding: 2em 3em;
+  border-radius: 12px;
+
+  background-color: rgb(255, 255, 255);  /* 白色 + 更低透明度 */
+  backdrop-filter: blur(16px);                 /* 背景模糊程度提升 */
+  -webkit-backdrop-filter: blur(16px);         /* Safari 相容 */
+  max-width: 650px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);   /* 更柔和但明顯的陰影 */
+  color: #000;                                  /* 使用深色文字加強對比 */
+  text-align: center;
+}
