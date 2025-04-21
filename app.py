@@ -106,7 +106,7 @@ def oauth_callback():
             aaguid=user_aaguid,
             sign_count=user_signCount,
             role=user_role,
-            expire_minutes=60,
+            expire_minutes=10,
         )
 
         # 重導向使用者的 dashboard 頁面

@@ -144,9 +144,30 @@ async function toggleLight() {
     isLight = !isLight;
     const images = isLight ? lightImages : darkImages;
     const randomIndex = Math.floor(Math.random() * images.length);
-    document.body.style.backgroundImage = `url("${images[randomIndex]}")`;
+    switchBackground(images[randomIndex]);
+    // document.body.style.backgroundImage = `url("${images[randomIndex]}")`;
 }
 
 window.toggleLight = toggleLight; // 將函式綁定到 window 物件上，便於在 HTML 中使用
 window.redirectToAuth = redirectToAuth; // 將函式綁定到 window 物件上，便於在 HTML 中使用
 export { toggleLight, redirectToAuth }; // 將函式導出，便於在其他模組中使用
+
+
+let currentLayer = true;
+
+function switchBackground(url) {
+    const layer1 = document.getElementById('bg-layer-1');
+    const layer2 = document.getElementById('bg-layer-2');
+
+    if (currentLayer) {
+        layer2.style.backgroundImage = `url(${url})`;
+        layer2.style.zIndex = -1;
+        layer1.style.zIndex = -2;
+    } else {
+        layer1.style.backgroundImage = `url(${url})`;
+        layer1.style.zIndex = -1;
+        layer2.style.zIndex = -2;
+    }
+
+    currentLayer = !currentLayer;
+}
