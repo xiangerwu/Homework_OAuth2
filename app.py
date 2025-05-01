@@ -12,8 +12,9 @@ from flask import (
 from flask_cors import CORS
 import requests
 from flask_sslify import SSLify
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
-
+from jwcrypto import jwk
 # 自定義函式
 from oauth2_functions import *
 
@@ -101,20 +102,14 @@ def oauth_callback():
         user_role = A_jwt_payload.get("role", "user")
         user_signCount = A_jwt_payload.get("signCount", 0)
         user_aaguid = A_jwt_payload.get("aaguid", None)
-        user_jwt = generate_user_jwt(
-            username=user_id,
-            aaguid=user_aaguid,
-            sign_count=user_signCount,
-            role=user_role,
-            expire_minutes=10,
-        )
+       
 
         # 重導向使用者的 dashboard 頁面
         responseToUser = make_response(redirect("/dashboard"))
         # 寫入 Cookie
         responseToUser.set_cookie(
             "token",
-            user_jwt,
+
             httponly=True,
             secure=True,
             samesite="Strict",
@@ -176,6 +171,27 @@ def logout():
     response.set_cookie("token", "", max_age=0, secure=True, samesite="None", path="/")
     return response
 
+
+# 產生 /jwks.json 路由公開 RSA 公鑰
+@app.route("/jwks.json")
+def jwks():
+    with open("RSA_key/public_key.pem", "rb") as f:
+         public_key = serialization.load_pem_public_key(
+            f.read(),
+            backend=default_backend()
+        )
+
+    # 轉成 JWKS 格式（略簡化版）
+    numbers = public_key.public_numbers()
+    jwk = {
+        "kty": "RSA",
+        "use": "sig",
+        "alg": "RS256",
+        "n": base64url_uint(numbers.n),
+        "e": base64url_uint(numbers.e),
+        "kid": "A1",  # 可自行定義金鑰 ID
+    }
+    return jsonify({"keys": [jwk]})
 
 # vscode debug 不會執行到這行
 # 要設定 launch.json
