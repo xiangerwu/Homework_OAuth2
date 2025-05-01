@@ -74,7 +74,7 @@ def generate_user_jwt(
     aaguid: str = None,
     sign_count: int = None,
     role: str = "user",
-    expire_minutes: int = 60,
+    expire_minutes: int = 10,
     issuer: str = None,
 ) -> str:
     """
