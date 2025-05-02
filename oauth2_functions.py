@@ -2,8 +2,11 @@ import requests
 import base64
 import jwt
 import os
+import json
 from jwt.algorithms import RSAAlgorithm
-from datetime import datetime, timedelta, timezone
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
+from base64 import urlsafe_b64encode,urlsafe_b64decode
 
 g_IP = "0.0.0.0"  # Flask 在 Render 上應該綁定所有 IP
 # g_IP = "127.0.0.1"
@@ -127,3 +130,71 @@ def get_public_key_from_jwks(jwks_url: str, kid: str):
             e = base64url_to_long(key["e"])
             return RSAAlgorithm.from_jwk({"kty": "RSA", "n": key["n"], "e": key["e"]})
     raise ValueError(f"找不到 kid={kid} 的公鑰")
+
+# 
+def verify_user_jwt(jwt_token: str):
+    """
+    驗證來自 A 的 RS256 JWT，並使用 B 的私鑰解密 payload
+
+    回傳:
+        payload (dict), None：驗證成功
+        None, error (str)：任一階段失敗
+    """
+    try:
+        print("開始執行驗證 JWT 函式")
+        # 1️⃣ 讀取 A 網站的公開金鑰（從 JWKS 取得）
+        unverified_header = jwt.get_unverified_header(jwt_token)
+        kid = unverified_header.get("kid")
+
+        if not kid:
+            return None, "❌ JWT 未含 kid，無法選擇對應公鑰"
+        # 
+        print("下載公開金鑰")
+        public_key = get_public_key_from_jwks(
+            "https://fido2-web.akitawan.moe/oauth2/.well-known/jwks.json", kid
+        )
+
+        # 2️⃣ 驗證簽章是否正確（RS256）
+        try:
+            print("用公鑰 A 驗證簽章")
+            jws_payload = jwt.decode(
+                jwt_token,
+                public_key,
+                algorithms=["RS256"],
+                issuer="https://fido2-web.akitawan.moe",
+            )
+        except jwt.ExpiredSignatureError:
+            return None, "❌ Token 已過期"
+        except jwt.InvalidTokenError as e:
+            return None, f"❌ Token 驗證失敗: {str(e)}"
+        except jwt.InvalidSignatureError:
+            return None, str("無效的簽名")
+        except jwt.DecodeError:
+            return None, str("解碼錯誤")
+        except jwt.InvalidIssuerError:
+            return None, str("無效的發行者")
+        except Exception as e:
+            return None, str(f"其他錯誤: {e}")
+
+        # 3️⃣ 讀取 B 自己的私鑰（PEM）
+        print("讀取私鑰 B讀取私鑰 B")
+        with open("RSA_key/private_key.pem", "rb") as f:
+            private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+        # 4️⃣ 用 RS256 解密 payload（實際是 base64url 編碼的亂碼字串）
+        print("先解出 base64 編碼為 byte")
+        encrypted_bytes = urlsafe_b64decode(jws_payload + '==')
+        print("將 payload 解碼")
+        decrypted = private_key.decrypt(
+            encrypted_bytes,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None,
+            )
+        )
+        payload = json.loads(decrypted.decode("utf-8"))
+        return payload, None
+
+    except Exception as e:
+        return None, f"❌ 解密或驗章過程錯誤：{str(e)}"

@@ -8,10 +8,10 @@ window.addEventListener("message", function (event) {
 
     console.log("[B] 收到來自 A 的訊息：", event.data);
 
-    const origin_state = localStorage.getItem("oauth_state");
-    const received_code = event.data.code;
-    const received_state = event.data.state;
-    const received_status = event.data.status;
+    const origin_state      = localStorage.getItem("oauth_state");
+    const received_JWT      = event.data.token;
+    const received_state    = event.data.state;
+    const received_status   = event.data.status;
 
     if (received_state !== origin_state) {
         alert("⚠ 驗證失敗：state 不一致，可能為偽造請求！");
@@ -21,16 +21,16 @@ window.addEventListener("message", function (event) {
     // ✅ state 驗證通過，處理登入結果
     if (received_status === "login_success") {
 
-        if (!received_code) {
-            alert("⚠ 登入失敗：未收到 code！");
+        if (!received_JWT) {
+            alert("⚠ 登入失敗：未收到 JWT");
             return;
         }
 
         // ✅ 寫入 B 端 cookie，便於後續驗證
-        document.cookie = `code=${received_code}; path=/; max-age=3600; SameSite=Strict`;
+        document.cookie = `token=${received_JWT}; path=/; max-age=3600; SameSite=Strict`;
 
         // ✅ 登入成功，導向 callback 處理驗證與畫面更新
-        window.location.href = `/oauth/callback?code=${received_code}`;
+        window.location.href = `/dashboard`;
     } else {
         alert("⚠ 登入失敗：status 為非 login_success");
         console.warn("[B] 非預期狀態：", received_status);
@@ -55,7 +55,7 @@ window.addEventListener("DOMContentLoaded", function () {
     } else if (error === "invalid_token") {    
         alert("⚠ 無效的 token！請重新登入。");
     } else if (error === "missing_code") {
-        alert("⚠  未提供授權碼，請重新登入。");
+        alert("⚠  未提供JWT，請重新登入。");
     }
     // 如果有錯誤，則清除 token cookie
     if(error) {
@@ -66,15 +66,17 @@ window.addEventListener("DOMContentLoaded", function () {
 
 // 這裡是登入按鈕的點擊事件
 // 會彈出一個視窗，並導向 Server A 的登入頁面
-// 這個視窗會在 Server A 完成授權後關閉，並回傳授權碼
+// 這個視窗會在 Server A 完成授權後關閉，並回傳JWT
 function redirectToAuth() {
-    // clientId 是 Server A 的 client_id，作用是識別這個應用程式
-    const clientId = "BtA-client";
+    // source 是 用來分辨登入要求來源網站
+    const source = "oauth.akitawan.moe";
+    // dist 是 用來寫入驗證目的網站
+    const dist = source; // 單一網站所以來源跟目的是同一個
     // redirectUri 是 Server B 的回調網址，當 Server A 完成授權後會導向這個網址
     const redirectUri = encodeURIComponent(`${window.location.origin}/oauth/callback`);
     // responseType 是 Server A 要回傳的 token 類型，這裡使用 Code
     // code != JWT
-    const responseType = "code"; 
+    const responseType = "JWT"; 
     // scope 是 Server A 要授權的範圍，這裡使用 openid
     const scope = "openid";
     // state 是用來防止 CSRF 攻擊的隨機字串，
@@ -85,7 +87,8 @@ function redirectToAuth() {
 
     // ✅ 建立參數物件
     const params = new URLSearchParams({
-        client_id: clientId,
+        source: source,
+        dist:dist,
         redirect_uri: redirectUri,
         response_type: responseType,
         scope: scope,
@@ -116,6 +119,8 @@ function redirectToAuth() {
     }, 1000);
 }
 
+
+// 以下是背景特效
 let isLight = false;  // 預設是關燈狀態
 
 export const darkImages = [];
