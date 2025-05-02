@@ -17,10 +17,12 @@ from cryptography.hazmat.backends import default_backend
 from jwcrypto import jwk
 # 自定義函式
 from oauth2_functions import *
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # 創建 Flask 應用，設定靜態資料夾與模板資料夾
 app = Flask(__name__, static_folder="static", template_folder="templates")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 CORS(app, origins=ORIGIN, supports_credentials=True)
 # 設定 SSL
@@ -52,74 +54,6 @@ def login_page():
         return redirect("/dashboard")
     # 如果沒有登入，顯示登入頁面
     return render_template("login.html")
-
-
-# 路徑 "/oauth/callback" 授權回調頁面
-# 這裡會處理 A 的授權碼，並換取 access_token
-# 然後產生 B 的 JWT Token，並寫入 Cookie
-@app.route("/oauth/callback")
-def oauth_callback():
-    # 取得授權碼
-    code = request.args.get("code")
-    if not code:
-        return redirect(url_for("login_page", error="missing_code"))
-
-    print("[DEBUG] 收到的授權碼：", code)
-
-    try:
-        print("[INFO] 向 A 的 /token 換取 access_token...")
-        response = requests.post(
-            url="https://fido2-web.akitawan.moe/oauth2/Code2Token",
-            json={
-                "code": code,
-                "client_id": B_Client_id,
-                "redirect_uri": request.url_root.replace("http://", "https://").rstrip("/") + "/oauth/callback",
-                "grant_type": "authorization_code",
-            },
-            timeout=5,
-        )
-
-        print("[DEBUG] A 回傳狀態碼：", response.status_code)
-        print("[DEBUG] 回應內容：", response.text)
-
-        if response.status_code != 200:
-            
-            return jsonify({"error": response.text}), 401
-
-        result = response.json()
-        id_token = result.get("id_token")  # A 回傳的 JWT
-
-        if not id_token:
-            return "❌ 未取得 id_token", 401
-
-        A_jwt_payload, A_jwt_error = verify_third_jwt(id_token)
-        if A_jwt_error:
-            return A_jwt_error, 401
-        print("[DEBUG] A 的 JWT Payload：", A_jwt_payload)
-
-        # 驗證成功，產出 B 的使用者專屬 JWT
-        user_id = A_jwt_payload.get("sub")
-        user_role = A_jwt_payload.get("role", "user")
-        user_signCount = A_jwt_payload.get("signCount", 0)
-        user_aaguid = A_jwt_payload.get("aaguid", None)
-       
-
-        # 重導向使用者的 dashboard 頁面
-        responseToUser = make_response(redirect("/dashboard"))
-        # 寫入 Cookie
-        responseToUser.set_cookie(
-            "token",
-
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=3600,
-        )
-        return responseToUser
-
-    except Exception as e:
-        return f"❌ 發生錯誤：{str(e)}", 500
-
 
 # 路徑 "/dashboard" 使用者專屬頁面
 # 這裡會顯示使用者的資訊，並驗證 JWT Token 是否有效

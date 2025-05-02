@@ -66,51 +66,6 @@ def verify_third_jwt(
         return None, f"❌ 公鑰取得或驗證錯誤: {str(e)}"
 
 
-# 這個函式會產生一個 JWT Token，並將其簽章
-# 這個 Token 可以用來驗證使用者的身份
-# 這個 Token 的有效時間為 expire_minutes 分鐘
-def generate_user_jwt(
-    username: str,
-    aaguid: str = None,
-    sign_count: int = None,
-    role: str = "user",
-    expire_minutes: int = 10,
-    issuer: str = None,
-) -> str:
-    """
-    產生 JWT Token
-
-    參數:
-        username (str): 使用者識別 ID
-        aaguid (str): FIDO2 裝置的識別碼（可選）
-        sign_count (int): FIDO2 裝置的簽名計數器（可選）
-        role (str): 使用者權限（預設為 'user'）
-        expire_minutes (int): Token 有效時間（分鐘）
-
-    回傳:
-        str: JWT 字串（已簽章）
-    """
-    # 取得當前時間
-    now = datetime.now(timezone.utc)
-    exp = now + timedelta(minutes=60)
-
-    # 產生 JWT Token 的 payload
-    payload = {
-        "sub": username,
-        "role": role,
-        "iat": int(now.timestamp()),  # 簽發時間
-        "exp": int(exp.timestamp()),  # 到期時間
-        "iss": ORIGIN,  # 發行者
-    }
-
-    if aaguid:
-        payload["aaguid"] = aaguid
-    if sign_count is not None:
-        payload["signCount"] = sign_count
-    token = jwt.encode(payload, g_secret_key, algorithm="HS256")  # or RS256
-    return token
-
-
 # 這個函式會驗證使用者的 JWT Token
 # 這個 Token 是由 Server B 簽章的
 # 這個 Token 的有效時間為 expire_minutes 分鐘
@@ -145,6 +100,20 @@ def base64url_to_long(data: str) -> int:
     padded = data + "=" * (4 - len(data) % 4)
     return int.from_bytes(base64.urlsafe_b64decode(padded), "big")
 
+
+# 函式名稱: base64url_uint
+# 作用: 將整數轉換為 Base64URL 編碼的字串（無符號）
+# 參數: 整數
+def base64url_uint(val: int) -> str:
+    """
+    將整數轉換為 Base64URL 編碼的字串（無符號）
+    - 去掉 '=' padding
+    - 使用 URL-safe base64 編碼
+    """
+    byte_length = (val.bit_length() + 7) // 8
+    byte_array = val.to_bytes(byte_length, 'big')  # 轉成 byte
+    b64 = base64.urlsafe_b64encode(byte_array).rstrip(b"=")  # URL-safe + 無填充
+    return b64.decode("utf-8")
 
 # 這個函式會從 A 的 JWKS 中抓對應的 RSA 公鑰
 # 這個 JWKS 是 A 提供的，通常是公開的
