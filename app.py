@@ -119,7 +119,7 @@ def jwks():
     numbers = public_key.public_numbers()
     jwk = {
         "kty": "RSA",
-        "use": "sig",
+        "use": "enc",
         "alg": "RS256",
         "n": base64url_uint(numbers.n),
         "e": base64url_uint(numbers.e),
