@@ -11,8 +11,10 @@ from base64 import urlsafe_b64decode
 g_IP = "0.0.0.0"                        # Flask 在 Render 上應該綁定所有 IP
 RP_NAME = "My OAuth2.0 App"             # 可保持不變，或改成你的應用名稱
 g_port = 5001                           # 預設 Flask 埠號
-RP_ID = "oauth.akitawan.moe"            # 改成你的正式域名
-ORIGIN = "https://oauth.akitawan.moe"   # 改成你的正式域名，且使用 HTTPS
+# RP_ID = "oauth.akitawan.moe"            # 改成你的正式域名
+RP_ID = "proxy.akitawan.moe"  # Fido2 用到
+ORIGIN = "akitawan.moe" # 改成你的正式域名，且使用 HTTPS
+
 g_secret_key = os.urandom(24)
 B_Client_id = "BtA-client"              # 這是 Server B與A 的 client_id
 
@@ -60,7 +62,7 @@ def verify_user_jwt(jwt_token: str):
         # 讀取 A 網站的公開金鑰（從 JWKS 取得）
         print("下載公鑰 A")
         public_key = get_public_key_from_jwks(
-            "https://fido2-web.akitawan.moe/oauth2/.well-known/jwks.json", "A1"
+            "https://proxy.akitawan.moe/wu/fido2/oauth2/jwks.json", "A1"
         )
         # 讀取 B 的私鑰並解密
         print("讀取私鑰 B")

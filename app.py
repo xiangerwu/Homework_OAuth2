@@ -18,11 +18,20 @@ from jwcrypto import jwk
 # 自定義函式
 from oauth2_functions import *
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.exceptions import NotFound
 
 
 # 創建 Flask 應用，設定靜態資料夾與模板資料夾
-app = Flask(__name__, static_folder="static", template_folder="templates")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+app = Flask(__name__, 
+            static_folder="static", 
+            template_folder="templates"
+        )
+
+# app.config["APPLICATION_ROOT"] = "/wu/oauth" 
+# 加入 ProxyFix（處理 X-Forwarded-For 與 HTTPS）
+app.wsgi_app = ProxyFix(app.wsgi_app,  x_for=1, x_proto=1,x_host=1,x_prefix=1)
+
 
 CORS(app, origins=ORIGIN, supports_credentials=True)
 # 設定 SSL
@@ -51,7 +60,7 @@ def login_page():
     jwt_token = request.cookies.get("token")
     if jwt_token:
         # 如果已經登入，直接重導向 dashboard
-        return redirect("/dashboard")
+        return redirect(url_for('dashboard'))
     # 如果沒有登入，顯示登入頁面
     return render_template("login.html")
 
@@ -64,7 +73,7 @@ def dashboard():
     # 驗證使用者的 JWT Token
     jwt_token = request.cookies.get("token")
     if not jwt_token:
-        return redirect("/")
+        return redirect(url_for("login_page"))
     try:
         print("[DEBUG] 收到的使用者 JWT：", jwt_token)
         # 驗證 JWT Token
@@ -88,24 +97,15 @@ def dashboard():
 # 這裡的登出是針對 B 的 JWT Token，不會影響 A 的 Token
 @app.route("/logout", methods=["POST", "GET"])
 def logout():
-    print("🧼 清除 A 的 token cookie")
-    response = make_response(
-        """
-        <html>
-        <body>
-            <script>
-                // 清除 cookie 只是保險手段，讓 JS 強制做一次
-                document.cookie = "token=; path=/; max-age=0; SameSite=None; Secure";
-                window.location.href = "/";
-            </script>
-        </body>
-        </html>
-    """
-    )
-    response.set_cookie("token", "", max_age=0, secure=True, samesite="None", path="/")
+    prefix = request.script_root or "/"  # 透過 ProxyFix + Header 推出前綴
+    print(f"🚪 登出中，script_root = {prefix}")
+    # 登出時清除 cookie
+    response = redirect(url_for("login_page"))
+    # 清除 path=/ 的 cookie
+    response.set_cookie("token", "", max_age=0, path="/", secure=True, samesite="None")
+
     return response
-
-
+ 
 # 產生 /jwks.json 路由公開 RSA 公鑰
 @app.route("/jwks.json")
 def jwks():
@@ -127,6 +127,8 @@ def jwks():
     }
     return jsonify({"keys": [jwk]})
 
+application = app
+ 
 # vscode debug 不會執行到這行
 # 要設定 launch.json
 if __name__ == "__main__":

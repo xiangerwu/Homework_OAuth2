@@ -13,6 +13,9 @@ window.addEventListener("message", function (event) {
     const received_state    = event.data.state;
     const received_status   = event.data.status;
 
+    console.log("A →", received_state, "B →", origin_state);
+    console.log(received_state === origin_state); // 應為 true
+
     if (received_state !== origin_state) {
         alert("⚠ 驗證失敗：state 不一致，可能為偽造請求！");
         console.warn("[警告] 收到不合法的 state！原始：", origin_state, " 實際：", received_state);
@@ -29,8 +32,8 @@ window.addEventListener("message", function (event) {
         // ✅ 寫入 B 端 cookie，便於後續驗證
         document.cookie = `token=${received_JWT}; path=/; max-age=3600; SameSite=Strict`;
 
-        // ✅ 登入成功，導向 callback 處理驗證與畫面更新
-        window.location.href = `/dashboard`;
+        // ✅ 登入成功
+       
     } else {
         alert("⚠ 登入失敗：status 為非 login_success");
         console.warn("[B] 非預期狀態：", received_status);
@@ -82,6 +85,7 @@ function redirectToAuth() {
     // state 是用來防止 CSRF 攻擊的隨機字串，
     // 這裡使用 crypto.randomUUID() 生成一個隨機的 UUID
     const state = crypto.randomUUID();
+
     // 將 state 儲存到 localStorage，便於驗證
     localStorage.setItem("oauth_state", state);
 
@@ -95,7 +99,7 @@ function redirectToAuth() {
         state: state,
         });
     // ✅ 組合網址
-    const authUrl = `https://fido2-web.akitawan.moe/oauth2/authorize?${params.toString()}`;
+    const authUrl = `https://proxy.akitawan.moe/wu/fido2/oauth2/authorize?${params.toString()}`;
 
     console.log("[B] 打開授權頁 URL：", authUrl);
     
@@ -115,6 +119,7 @@ function redirectToAuth() {
         if (popup && popup.closed) {
             clearInterval(timer);
             console.log("[B] 授權視窗已關閉");
+            window.location.reload(); // 重新載入頁面
         }
     }, 1000);
 }
@@ -127,11 +132,12 @@ export const darkImages = [];
 export const lightImages = [];
 
 
+
 for (let i = 1; i < 3 ; i++) {
-    darkImages.push(`/static/images/dark${i}.png`);
+    darkImages.push(`${window.location.pathname}/static/images/dark${i}.png`);
 }
 for (let i = 1; i < 3; i++) {
-    lightImages.push(`/static/images/light${i}.png`);
+    lightImages.push(`${window.location.pathname}/static/images/light${i}.png`);
 }
 
 // 通用 preload 函式

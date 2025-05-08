@@ -36,20 +36,19 @@ userInfoDiv.innerHTML = `
 // ➤ 這裡是登出按鈕的點擊事件
 async function logout() {
     // 清除 cookie
-    const options = await fetch("/logout", {
+    await fetch(`${window.base_path}/logout`, {
         method: "POST",
         credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-        },
     });
+    document.cookie = "token=; path=/; max-age=0; SameSite=None; Secure";    
     // 重整頁面
     location.reload();
 }
 
 
 for (let i = 1; i < 3; i++) {
-    dashImages.push(`/static/images/dash${i}.png`);
+    console.log(`${window.location.pathname}/../static/images/dash${i}.png`);
+    dashImages.push(`${window.location.pathname}/../static/images/dash${i}.png`);
 }
 // 通用 preload 函式
 export function preloadImages(imageList) {
