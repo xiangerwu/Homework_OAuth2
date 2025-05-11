@@ -1,6 +1,7 @@
 // 這段程式碼是用來處理 OAuth2.0 的登入流程，
 // 主要是與 Server A 進行授權，並在成功後取得 token，
 
+const ImgPathname =  window.location.pathname;
 // 提前綁定 message listener
 // 這樣當 Server A 回傳訊息時，B 端就能接收到
 // 這段程式碼會在 Server B 的登入頁面中執行，
@@ -134,10 +135,10 @@ export const lightImages = [];
 
 
 for (let i = 1; i < 3 ; i++) {
-    darkImages.push(`${window.location.pathname}/static/images/dark${i}.png`);
+    darkImages.push(`${ImgPathname}static/images/dark${i}.png`);
 }
 for (let i = 1; i < 3; i++) {
-    lightImages.push(`${window.location.pathname}/static/images/light${i}.png`);
+    lightImages.push(`${ImgPathname}static/images/light${i}.png`);
 }
 
 // 通用 preload 函式

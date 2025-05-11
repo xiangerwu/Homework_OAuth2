@@ -11,7 +11,7 @@ document.getElementById("user-title").innerText = `歡迎回來，${htmlUnescape
 preloadImages([ ...dashImages]);
 // document.body.style.backgroundImage = `url("${dashImages[1]}")`;
 
-
+const ImgPathname = window.location.pathname;
 // 將 html 轉換為可讀的文字
 function htmlUnescape(str) {
     const div = document.createElement("div");
@@ -47,8 +47,8 @@ async function logout() {
 
 
 for (let i = 1; i < 3; i++) {
-    console.log(`${window.location.pathname}/../static/images/dash${i}.png`);
-    dashImages.push(`${window.location.pathname}/../static/images/dash${i}.png`);
+    console.log(`${ImgPathname}/../static/images/dash${i}.png`);
+    dashImages.push(`${ImgPathname}/../static/images/dash${i}.png`);
 }
 // 通用 preload 函式
 export function preloadImages(imageList) {
