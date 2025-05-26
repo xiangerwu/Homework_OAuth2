@@ -36,12 +36,15 @@ userInfoDiv.innerHTML = `
 // ➤ 這裡是登出按鈕的點擊事件
 async function logout() {
     try {
+        
         // 清除 cookie
         await fetch(`${window.base_path}/logout`, {
             method: "POST",
             credentials: "include",
         });
-        document.cookie = "pdp_token=; path=/; max-age=0; SameSite=None; Secure";    
+        // document.cookie = "pdp_token=; path=/; max-age=0; SameSite=None; Secure";
+
+        // alert("登出完畢，將關閉當前頁面。");
         // 嘗試關閉當前頁面（視窗）
         window.close();
         // 若關不掉（不是 popup 或被阻擋），則跳轉到首頁

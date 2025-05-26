@@ -62,7 +62,7 @@ def login_page():
         # 如果已經登入，直接重導向 dashboard
         return redirect(url_for('dashboard'))
     # 如果沒有登入，顯示登入頁面
-    return render_template("login.html")
+    return render_template("teapot.html"), 418
 
 # 路徑 "/dashboard" 使用者專屬頁面
 # 這裡會顯示使用者的資訊，並驗證 JWT Token 是否有效
@@ -73,6 +73,7 @@ def dashboard():
     # 驗證使用者的 JWT Token
     jwt_token = request.cookies.get("pdp_token")
     if not jwt_token:
+        
         return redirect(url_for("login_page"))
     try:
         print("[DEBUG] 收到的使用者 JWT：", jwt_token)
