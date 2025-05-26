@@ -35,14 +35,23 @@ userInfoDiv.innerHTML = `
 
 // ➤ 這裡是登出按鈕的點擊事件
 async function logout() {
-    // 清除 cookie
-    await fetch(`${window.base_path}/logout`, {
-        method: "POST",
-        credentials: "include",
-    });
-    document.cookie = "token=; path=/; max-age=0; SameSite=None; Secure";    
-    // 重整頁面
-    location.reload();
+    try {
+        // 清除 cookie
+        await fetch(`${window.base_path}/logout`, {
+            method: "POST",
+            credentials: "include",
+        });
+        document.cookie = "pdp_token=; path=/; max-age=0; SameSite=None; Secure";    
+        // 嘗試關閉當前頁面（視窗）
+        window.close();
+        // 若關不掉（不是 popup 或被阻擋），則跳轉到首頁
+        setTimeout(() => {
+            location.href = "/";
+        }, 100);
+    } catch (err) {
+        console.error("登出失敗：", err);
+        alert("登出過程發生錯誤！");
+    }
 }
 
 

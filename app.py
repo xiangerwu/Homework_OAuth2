@@ -57,7 +57,7 @@ def favicon():
 # 如果沒有登入，顯示登入頁面
 @app.route("/")
 def login_page():
-    jwt_token = request.cookies.get("token")
+    jwt_token = request.cookies.get("pdp_token")
     if jwt_token:
         # 如果已經登入，直接重導向 dashboard
         return redirect(url_for('dashboard'))
@@ -71,7 +71,7 @@ def login_page():
 @app.route("/dashboard")
 def dashboard():
     # 驗證使用者的 JWT Token
-    jwt_token = request.cookies.get("token")
+    jwt_token = request.cookies.get("pdp_token")
     if not jwt_token:
         return redirect(url_for("login_page"))
     try:

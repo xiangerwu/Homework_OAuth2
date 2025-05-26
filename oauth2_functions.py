@@ -64,18 +64,20 @@ def verify_user_jwt(jwt_token: str):
         public_key = get_public_key_from_jwks(
             "https://proxy.akitawan.moe/wu/fido2/oauth2/jwks.json", "A1"
         )
-        # 讀取 B 的私鑰並解密
-        print("讀取私鑰 B")
-        with open("RSA_key/private_key.pem", "rb") as f:
-            private_key = jwk.JWK.from_pem(f.read())
-        
         # 驗證簽章是否正確（RS256）
         print("用公鑰 A 驗證簽章")
         token_verified = jwt.JWT(jwt=jwt_token, key=public_key)
 
         print("📦 取得加密的 JWE Payload")
         encrypted_jwe_str = token_verified.claims
+        print("加密的 JWE Payload:", encrypted_jwe_str)
         jwe_token = jwe.JWE()
+        # 讀取 B 的私鑰並解密
+        print("讀取私鑰 B")
+        # with open("RSA_key/private_key.pem", "rb") as f:
+        with open("RSA_key/server.key", "rb") as f:
+            private_key = jwk.JWK.from_pem(f.read())
+        
         print("解密 payload")
         jwe_token.deserialize(encrypted_jwe_str, key=private_key)
 
