@@ -73,7 +73,6 @@ def dashboard():
     # 驗證使用者的 JWT Token
     jwt_token = request.cookies.get("pdp_token")
     if not jwt_token:
-        
         return redirect(url_for("login_page"))
     try:
         print("[DEBUG] 收到的使用者 JWT：", jwt_token)
@@ -103,7 +102,7 @@ def logout():
     # 登出時清除 cookie
     response = redirect(url_for("login_page"))
     # 清除 path=/ 的 cookie
-    response.set_cookie("token", "", max_age=0, path="/", secure=True, samesite="None")
+    # response.set_cookie("token", "", max_age=0, path="/", secure=True, samesite="None")
 
     return response
  
